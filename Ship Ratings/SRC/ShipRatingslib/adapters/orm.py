@@ -6,46 +6,46 @@ from ShipRatingslib.Domain import ReviewFramework
 
 metadata = MetaData()
 
-order_lines = Table(
-    "order_lines",
+Previous_Ratings = Table(
+    "Previous_Ratings",
     metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("sku", String(255)),
-    Column("qty", Integer, nullable=False),
-    Column("orderid", String(255)),
+    Column("ShipName", String(255)),
+    Column("ShipID", String(255)),
+    Column("PriceofTicket", Integer, nullable=False),
+    Column("QuantityOfTickets", Integer, nullable=False),
+    Column("TicketId", Integer, nullable=False),
+    Column("RatingNumber", float),
+    Column("Text", String(255)),
+    Column("Problems", String(255)),
 )
 
-products = Table(
-    "products",
+Aggregate = Table(
+    "Aggregate",
     metadata,
-    Column("sku", String(255), primary_key=True),
-    Column("version_number", Integer, nullable=False, server_default="0"),
-)
-
-batches = Table(
-    "batches",
-    metadata,
-    Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("reference", String(255)),
-    Column("sku", ForeignKey("products.sku")),
-    Column("_purchased_quantity", Integer, nullable=False),
-    Column("eta", Date, nullable=True),
+    Column("ShipName", String(255)),
+    Column("ShipID", String(255)),
+    Column("PriceofTicket", Integer, nullable=False),
+    Column("QuantityOfTickets", Integer, nullable=False),
+    Column("TicketId", Integer, nullable=False),
+    Column("RatingNumber", float),
+    Column("Text", String(255)),
+    Column("Problems", String(255)),
 )
 
 allocations = Table(
     "allocations",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("orderline_id", ForeignKey("order_lines.id")),
-    Column("batch_id", ForeignKey("batches.id")),
+    Column("orderline_id", ForeignKey("Previous_Ratings.id")),
+    Column("batch_id", ForeignKey("Aggregate.id")),
 )
 
 
 def start_mappers():
-    lines_mapper = mapper(model.OrderLine, order_lines)
-    batches_mapper = mapper(
-        model.Batch,
-        batches,
+    lines_mapper = mapper(ReviewFramework.PreviousRating, Previous_Ratings)
+    Aggregate_mapper = mapper(
+        ReviewFramework.Batch,
+        allocations,
         properties={
             "_allocations": relationship(
                 lines_mapper,
@@ -55,6 +55,6 @@ def start_mappers():
         },
     )
     mapper(
-        ReviewFramework.Product, products, properties={
-            "batches": relationship(batches_mapper)}
+        ReviewFramework.Rating, properties={
+            "Aggregate": relationship(Aggregate_mapper)}
     )
