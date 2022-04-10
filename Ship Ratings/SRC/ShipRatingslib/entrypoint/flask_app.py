@@ -1,11 +1,9 @@
 from datetime import datetime
 from flask import Flask, request
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 from ShipRatingslib.Domain import ReviewFramework
 from ShipRatingslib.adapters import orm
 from ShipRatingslib.Services import services, unit_of_work
+from ShipRatingslib.Services.Admin import DuplicateReview
 
 app = Flask(__name__)
 orm.start_mappers()
@@ -47,6 +45,6 @@ def aggregate_endpoint():
             request.json["Problems"],
             unit_of_work.SqlAlchemyUnitOfWork(),
         )
-    except (ReviewFramework.Duplicate, Admin.DuplicateReview) as e:
+    except ReviewFramework.Duplicate as e:
         return {"message": str(e)}, 400
     return {"batchref": batchref}, 201

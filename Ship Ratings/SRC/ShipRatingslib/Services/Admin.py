@@ -1,46 +1,38 @@
 from __future__ import annotations
-from typing import Optional
-from datetime import date
-
-from ShipRatingslib.Domain import ReviewFramework
+from typing import TYPE_CHECKING
+from ShipRatingslib.adapters import Email
+from ShipRatingslib.Domain import ReviewCommands, ReviewMistakes, ReviewFramework
 from ShipRatingslib.Domain.ReviewFramework import PreviousRating
-from ShipRatingslib.Services import unit_of_work
+
+
+if TYPE_CHECKING:
+    from . import unit_of_work
 
 
 class DuplicateReview(Exception):
     pass
-    ShipName: str
-    ShipID: str
-    PriceofTicket: int
-    QuantityOfTickets: int
-    TicketId: int
-    RatingNumber: float
-    Text: str
-    Problems: str
 
 
 def add_batch(
-    ShipName: str, ShipID: str, PriceofTicket: int, QuantityOfTickets: int, TicketId: int, RatingNumber: float,
-    Text: str, Problems: str,
+    cmd: ReviewCommands.CreateBatch,
     uow: unit_of_work.AbstractUnitOfWork,
 ):
     with uow:
-        Review = uow.Review.get(TicketId=TicketId)
+        Review = uow.Review.get(TicketId=cmd.TicketId)
         if Review is None:
-            Review = ReviewFramework.PreviousRating(TicketId, batches=[])
+            Review = ReviewFramework.PreviousRating(cmd.TicketId, batches=[])
             uow.Review.add(Review)
-        Review.batches.append(ReviewFramework.Batch(TicketId, ShipName, ShipID, PriceofTicket,
-                                                    QuantityOfTickets, TicketId, RatingNumber, Text, PriceofTicket, Problems))
+        Review.batches.append(ReviewFramework.Batch(cmd.TicketId, cmd.ShipName, cmd.ShipID, cmd.PriceofTicket,
+                                                    cmd.QuantityOfTickets, cmd.TicketId, cmd.RatingNumber, cmd.Text, cmd.PriceofTicket, cmd.Problems))
         uow.commit()
 
 
 def allocate(
-    ShipName: str, ShipID: str, PriceofTicket: int, QuantityOfTickets: int, TicketId: int, RatingNumber: float,
-    Text: str, Problems: str,
+    cmd: ReviewCommands.Allocate,
     uow: unit_of_work.AbstractUnitOfWork,
 ) -> str:
-    line = PreviousRating(TicketId, ShipName, ShipID, PriceofTicket,
-                          QuantityOfTickets, TicketId, RatingNumber, Text, Problems)
+    line = PreviousRating(cmd.TicketId, cmd.ShipName, cmd.ShipID, cmd.PriceofTicket,
+                          cmd.QuantityOfTickets, cmd.TicketId, cmd.RatingNumber, cmd.Text, cmd.Problems)
     with uow:
         Review = uow.Review.get(TicketId=line.TicketId)
         if Review is None:
@@ -48,3 +40,13 @@ def allocate(
         batchref = Review.allocate(line)
         uow.commit()
     return batchref
+
+
+def send_Duplicate_Review_notification(
+    event: ReviewMistakes.DuplicateReview,
+    uow: unit_of_work.AbstractUnitOfWork,
+):
+    Email.send(
+        "stock@made.com",
+        f"Duplicate Review {event.TicketId}",
+    )

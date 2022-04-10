@@ -1,4 +1,4 @@
-from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Table, MetaData, Column, Integer, String, Date, ForeignKey, event
 from sqlalchemy.orm import mapper, relationship
 
 from ShipRatingslib.Domain import ReviewFramework
@@ -58,3 +58,8 @@ def start_mappers():
         ReviewFramework.Rating, properties={
             "Aggregate": relationship(Aggregate_mapper)}
     )
+
+
+@event.listens_for(ReviewFramework.Rating, "load")
+def receive_load(Rating, _):
+    Rating.events = []

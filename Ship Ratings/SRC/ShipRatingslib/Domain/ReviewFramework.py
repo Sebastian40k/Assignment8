@@ -32,24 +32,23 @@ class PreviousRating:
     ShipID: str
     PriceofTicket: int
     QuantityOfTickets: int
-    TicketId: int
+    TicketId: str
     RatingNumber: float
     Text: str
     Problems: str
 
 
 class Batch:
-    def __init__(self, ShipName: str, ShipID: str, PriceofTicket: int, QuantityOfTickets: int, TicketId: int, RatingNumber: float,
-                 Text: str, PriceofTicProblemsket: str, eta: Optional[date]):
+    def __init__(self, ShipName: str, ShipID: str, PriceofTicket: int, QuantityOfTickets: int, TicketId: str, RatingNumber: float,
+                 Text: str, problems: str):
         self.reference = ShipName
         self.ShipID = ShipID
-        self.eta = eta
         self.PriceofTicket = PriceofTicket
         self.QuantityOfTickets = QuantityOfTickets
         self.TicketId = TicketId
         self.RatingNumber = RatingNumber
         self.Text = Text
-        self.PriceofTicProblemsket = PriceofTicProblemsket
+        self.problems = problems
         self._allocations = set()
 
     def __repr__(self):
