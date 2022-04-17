@@ -50,3 +50,52 @@ def send_Duplicate_Review_notification(
         "stock@made.com",
         f"Duplicate Review {event.TicketId}",
     )
+
+
+def publish_allocated_event(
+    event: ReviewMistakes.Allocated,
+    publish: Callable,
+):
+    publish("line_allocated", event)
+
+
+def add_allocation_to_read_model(
+    event: ReviewMistakes.Allocated,
+    uow: unit_of_work.SqlAlchemyUnitOfWork,
+):
+    with uow:
+        uow.session.execute(
+            """
+            INSERT INTO allocations_view (orderid, sku, batchref)
+            VALUES (:orderid, :sku, :batchref)
+            """,
+            dict(orderid=event.orderid, sku=event.sku, batchref=event.batchref),
+        )
+        uow.commit()
+
+
+def remove_allocation_from_read_model(
+    event: ReviewMistakes.Deallocated,
+    uow: unit_of_work.SqlAlchemyUnitOfWork,
+):
+    with uow:
+        uow.session.execute(
+            """
+            DELETE FROM allocations_view
+            WHERE orderid = :orderid AND sku = :sku
+            """,
+            dict(orderid=event.orderid, sku=event.sku),
+        )
+        uow.commit()
+
+
+EVENT_HANDLERS = {
+    ReviewMistakes.Allocated: [publish_allocated_event, add_allocation_to_read_model],
+    ReviewMistakes.Deallocated: [remove_allocation_from_read_model, reallocate],
+    ReviewMistakes.DuplicateReview: [send_Duplicate_Review_notification],
+}
+
+COMMAND_HANDLERS = {
+    ReviewCommands.Allocate: allocate,
+    ReviewCommands.CreateBatch: add_batch,
+}

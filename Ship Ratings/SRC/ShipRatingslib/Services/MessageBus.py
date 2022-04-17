@@ -63,9 +63,9 @@ def handle_command(
 
 EVENT_HANDLERS = {
     ReviewMistakes.DuplicateReview: [handlers.send_Duplicate_Review_notification],
-}  # type: Dict[Type[ReviewMistakes.Event], List[Callable]]
+}
 
 COMMAND_HANDLERS = {
     ReviewCommands.Allocate: handlers.allocate,
     ReviewCommands.CreateBatch: handlers.add_batch,
-}  # type: Dict[Type[ReviewCommands.Command], Callable]
+}

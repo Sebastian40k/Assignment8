@@ -6,7 +6,7 @@ from ShipRatingslib.Domain import ReviewFramework
 
 class AbstractRepository(abc.ABC):
     def __init__(self):
-        self.seen = set()  # type: Set[ReviewFramework.Review]
+        self.seen = set()
 
     def add(self, Review: ReviewFramework.Review):
         self._add(Review)
